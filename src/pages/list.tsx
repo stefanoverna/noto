@@ -9,7 +9,9 @@ import { TopNavbar } from "../components/todo/TopNavbar";
 import { TodoGroup } from "../components/todo/TodoGroup";
 import { ShareDialog } from "../components/todo/ShareDialog";
 import { CreateGroupDialog } from "../components/todo/CreateGroupDialog";
-import { isValidUUID } from "../lib/utils";
+import { BatchImportDialog } from "../components/todo/BatchImportDialog";
+import { isValidUUID, generateUUID } from "../lib/utils";
+import { supabase } from "../lib/supabase";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -18,6 +20,7 @@ export default function ListPage() {
   const navigate = useNavigate();
   const [shareOpen, setShareOpen] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [batchImportOpen, setBatchImportOpen] = useState(false);
 
   const {
     list,
@@ -45,6 +48,10 @@ export default function ListPage() {
     loadList();
   }, [listId, navigate, loadList]);
 
+  const handleListChange = useCallback(() => {
+    loadList(true); // silent reload without loading state
+  }, [loadList]);
+
   const handleGroupChange = useCallback(() => {
     loadList(true); // silent reload without loading state
   }, [loadList]);
@@ -55,6 +62,7 @@ export default function ListPage() {
 
   const { connected } = useTodoSync({
     listId: listId || "",
+    onListChange: handleListChange,
     onGroupChange: handleGroupChange,
     onItemChange: handleItemChange,
   });
@@ -155,6 +163,71 @@ export default function ListPage() {
     [updateListName],
   );
 
+  const handleBatchImport = useCallback(
+    async (
+      parsedGroups: Array<{
+        name: string;
+        items: Array<{ text: string; done: boolean }>;
+      }>,
+    ) => {
+      if (!listId) return;
+
+      try {
+        const now = new Date().toISOString();
+        const groupsToInsert = [];
+        const itemsToInsert = [];
+
+        let groupPosition = groups.length;
+
+        for (const parsedGroup of parsedGroups) {
+          const groupId = generateUUID();
+
+          groupsToInsert.push({
+            id: groupId,
+            list_id: listId,
+            name: parsedGroup.name,
+            position: groupPosition++,
+            created_at: now,
+          });
+
+          let itemPosition = 0;
+          for (const item of parsedGroup.items) {
+            itemsToInsert.push({
+              id: generateUUID(),
+              group_id: groupId,
+              list_id: listId,
+              text: item.text,
+              done: item.done,
+              position: itemPosition++,
+              created_at: now,
+              completed_at: item.done ? now : null,
+            });
+          }
+        }
+
+        if (groupsToInsert.length > 0) {
+          const { error: groupsError } = await supabase
+            .from("todo_groups")
+            .insert(groupsToInsert);
+          if (groupsError) throw groupsError;
+        }
+
+        if (itemsToInsert.length > 0) {
+          const { error: itemsError } = await supabase
+            .from("todo_items")
+            .insert(itemsToInsert);
+          if (itemsError) throw itemsError;
+        }
+
+        await loadList();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Failed to batch import:", error);
+      }
+    },
+    [listId, groups.length, loadList],
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -185,6 +258,7 @@ export default function ListPage() {
           title={list.name}
           totalCount={items.length}
           onAddGroup={() => setCreateGroupOpen(true)}
+          onBatchImportClick={() => setBatchImportOpen(true)}
           onShareClick={() => setShareOpen(true)}
           onTitleChange={handleUpdateListName}
         />
@@ -204,7 +278,13 @@ export default function ListPage() {
                 <TodoGroup
                   key={group.id}
                   group={group}
-                  items={items.filter((item) => item.group_id === group.id)}
+                  items={items
+                    .filter((item) => item.group_id === group.id)
+                    .sort((a, b) => {
+                      // Completed items first, then uncompleted items
+                      if (a.done === b.done) return 0;
+                      return a.done ? -1 : 1;
+                    })}
                   onAddItem={handleAddItem}
                   onDeleteGroup={handleDeleteGroup}
                   onDeleteItem={handleDeleteItem}
@@ -226,6 +306,11 @@ export default function ListPage() {
           open={createGroupOpen}
           onCreateGroup={handleAddGroup}
           onOpenChange={setCreateGroupOpen}
+        />
+        <BatchImportDialog
+          open={batchImportOpen}
+          onImport={handleBatchImport}
+          onOpenChange={setBatchImportOpen}
         />
       </div>
     </TooltipProvider>

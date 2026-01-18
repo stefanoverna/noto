@@ -71,7 +71,6 @@ export function useTodoSync({
     }
 
     // Listen to postgres_changes for todo_items
-    // Note: We can't filter by list_id directly, so we'll need to check in the handler
     if (onItemChange) {
       realtimeChannel.on(
         "postgres_changes",
@@ -79,6 +78,7 @@ export function useTodoSync({
           event: "*",
           schema: "public",
           table: "todo_items",
+          filter: `list_id=eq.${listId}`,
         },
         (payload) => {
           onItemChange({

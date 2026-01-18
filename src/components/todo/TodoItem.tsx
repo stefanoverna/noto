@@ -1,26 +1,18 @@
-import type { TodoItem as TodoItemType } from "../../types/todo";
+import type { TodoItem as TodoItemType } from '../../types/todo';
 
-import { useState } from "react";
-import { Trash2, MoreVertical, Pencil } from "lucide-react";
+import { useState } from 'react';
+import { Trash2, MoreVertical, Pencil } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import { EditTextDialog } from './EditTextDialog';
 
 interface TodoItemProps {
   item: TodoItemType;
@@ -36,34 +28,12 @@ export function TodoItem({
   onDelete,
 }: TodoItemProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editValue, setEditValue] = useState(item.text);
-
-  const handleSaveEdit = () => {
-    if (editValue.trim()) {
-      onUpdate(item.id, editValue.trim());
-      setIsEditDialogOpen(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditValue(item.text);
-    setIsEditDialogOpen(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSaveEdit();
-    } else if (e.key === "Escape") {
-      handleCancelEdit();
-    }
-  };
 
   return (
     <>
-      <div className="flex items-center gap-2 py-1 rounded-md hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-4 rounded-md hover:bg-muted/50 transition-colors">
         <button
-          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          className="flex items-center gap-4 flex-1 min-w-0 text-left"
           type="button"
           onClick={() => onToggle(item.id)}
         >
@@ -74,8 +44,8 @@ export function TodoItem({
 
           <span
             className={cn(
-              "flex-1 text-sm transition-all",
-              item.done && "line-through text-muted-foreground",
+              'flex-1 py-1 text-sm transition-all',
+              item.done && 'line-through text-muted-foreground',
             )}
           >
             {item.text}
@@ -89,12 +59,7 @@ export function TodoItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => {
-                setEditValue(item.text);
-                setIsEditDialogOpen(true);
-              }}
-            >
+            <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>
@@ -109,28 +74,15 @@ export function TodoItem({
         </DropdownMenu>
       </div>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit item</DialogTitle>
-            <DialogDescription>
-              Make changes to your todo item.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            autoFocus
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancelEdit}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveEdit}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditTextDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={(text) => onUpdate(item.id, text)}
+        title="Edit Item"
+        placeholder="Enter item text..."
+        initialValue={item.text}
+        submitLabel="Save"
+      />
     </>
   );
 }

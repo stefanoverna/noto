@@ -50,20 +50,14 @@ export function useTodoList(listId: string) {
         if (groupsError) throw groupsError;
         setGroups(groupsData);
 
-        const groupIds = groupsData.map((g) => g.id);
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("todo_items")
+          .select("*")
+          .eq("list_id", listId)
+          .order("position");
 
-        if (groupIds.length > 0) {
-          const { data: itemsData, error: itemsError } = await supabase
-            .from("todo_items")
-            .select("*")
-            .in("group_id", groupIds)
-            .order("position");
-
-          if (itemsError) throw itemsError;
-          setItems(itemsData);
-        } else {
-          setItems([]);
-        }
+        if (itemsError) throw itemsError;
+        setItems(itemsData);
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to load list"));
       } finally {
@@ -157,6 +151,7 @@ export function useTodoList(listId: string) {
       const newItem: TodoItem = {
         id: generateUUID(),
         group_id: groupId,
+        list_id: listId,
         text,
         done: false,
         position,
@@ -173,7 +168,7 @@ export function useTodoList(listId: string) {
         throw error;
       }
     },
-    [items],
+    [items, listId],
   );
 
   const updateItem = useCallback(

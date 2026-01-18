@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Share2, Plus } from "lucide-react";
+import { ArrowLeft, Share2, Plus, MoreVertical, FileText, Edit } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,12 +8,20 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { EditTextDialog } from "./EditTextDialog";
 
 interface TopNavbarProps {
   title: string;
   onTitleChange: (title: string) => void;
   onShareClick: () => void;
+  onBatchImportClick: () => void;
   onAddGroup: () => void;
   status: "connected" | "connecting";
   completedCount: number;
@@ -24,24 +32,15 @@ export function TopNavbar({
   title,
   onTitleChange,
   onShareClick,
+  onBatchImportClick,
   onAddGroup,
   status,
   completedCount,
   totalCount,
 }: TopNavbarProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(title);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-  const handleSave = () => {
-    if (editValue.trim()) {
-      onTitleChange(editValue.trim());
-    } else {
-      setEditValue(title);
-    }
-    setIsEditing(false);
-  };
 
   return (
     <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b">
@@ -73,30 +72,9 @@ export function TopNavbar({
               <TooltipContent>Back to home</TooltipContent>
             </Tooltip>
 
-            {isEditing ? (
-              <input
-                autoFocus
-                className="flex-1 min-w-0 text-lg font-semibold bg-transparent border-b-2 border-primary outline-none"
-                type="text"
-                value={editValue}
-                onBlur={handleSave}
-                onChange={(e) => setEditValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSave();
-                  if (e.key === "Escape") {
-                    setEditValue(title);
-                    setIsEditing(false);
-                  }
-                }}
-              />
-            ) : (
-              <button
-                className="flex-1 min-w-0 text-lg font-semibold text-left truncate hover:text-primary transition-colors"
-                onClick={() => setIsEditing(true)}
-              >
-                {title}
-              </button>
-            )}
+            <h1 className="flex-1 min-w-0 text-lg font-semibold truncate">
+              {title}
+            </h1>
           </div>
 
           {/* Right side: Actions */}
@@ -130,18 +108,46 @@ export function TopNavbar({
               <TooltipContent>Add group</TooltipContent>
             </Tooltip>
 
-            {/* Share button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" onClick={onShareClick}>
-                  <Share2 className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Share list</TooltipContent>
-            </Tooltip>
+            {/* More options dropdown */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost">
+                      <MoreVertical className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>More options</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsRenameDialogOpen(true)}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Rename list
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onShareClick}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share list
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onBatchImportClick}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Batch import
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
+
+      <EditTextDialog
+        open={isRenameDialogOpen}
+        onOpenChange={setIsRenameDialogOpen}
+        onSave={onTitleChange}
+        title="Rename List"
+        placeholder="Enter list name..."
+        initialValue={title}
+        submitLabel="Rename"
+      />
     </nav>
   );
 }

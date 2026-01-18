@@ -31,3 +31,4 @@ bun.lockb
 shadcn-interface/
 supabase/.temp/
 supabase/.branches/
+.playwright-mcp/

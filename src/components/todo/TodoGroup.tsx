@@ -82,45 +82,45 @@ export function TodoGroup({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2.5">
             <button
-              className="flex items-center gap-1.5 flex-1 min-w-0 text-left"
+              className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
               type="button"
               onClick={handleToggleExpand}
             >
-              <div className="h-6 w-4 shrink-0 flex items-center justify-center">
+              <div className="h-8 w-6 shrink-0 flex items-center justify-center">
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-5 w-5" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-5 w-5" />
                 )}
               </div>
 
-              <span className="text-sm font-semibold flex-1">{group.name}</span>
+              <span className="text-base font-semibold flex-1">{group.name}</span>
             </button>
 
             {totalCount > 0 && (
-              <span className="text-xs text-muted-foreground tabular-nums">
+              <span className="text-sm text-muted-foreground tabular-nums">
                 {completedCount}/{totalCount}
               </span>
             )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="h-6 w-6" size="icon" variant="icon-button">
-                  <MoreVertical className="h-4 w-4" />
+                <Button className="h-9 w-9" size="icon" variant="icon-button">
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
+                  <Pencil className="h-5 w-5 mr-2.5" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   onClick={() => onDeleteGroup(group.id)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-5 w-5 mr-2.5" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -140,16 +140,16 @@ export function TodoGroup({
               />
             ))}
 
-            <div className="flex items-center gap-4 py-1">
-              <div className="h-4 w-4 rounded-full border-2 border-dashed border-muted-foreground/30 shrink-0" />
+            <div className="flex items-center gap-5 py-1">
+              <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/30 shrink-0" />
               <div
                 className={cn(
-                  "flex items-center gap-4 flex-1 rounded-md -ml-1 pl-1 transition-colors",
+                  "flex items-center gap-5 flex-1 rounded-md -ml-1 pl-1 transition-colors",
                   isFocused ? "bg-muted/50" : "hover:bg-muted/30",
                 )}
               >
                 <input
-                  className="flex-1 py-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                  className="flex-1 py-1.5 text-base bg-transparent outline-none placeholder:text-muted-foreground/50"
                   placeholder="Add new item..."
                   value={newItemText}
                   onBlur={() => setIsFocused(false)}
@@ -161,12 +161,12 @@ export function TodoGroup({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        className="h-6 w-6 text-primary hover:bg-primary/10"
+                        className="h-9 w-9 text-primary hover:bg-primary/10"
                         size="icon"
                         variant="ghost"
                         onClick={handleAddItem}
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Add item</TooltipContent>

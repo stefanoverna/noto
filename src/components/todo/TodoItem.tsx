@@ -32,20 +32,20 @@ export function TodoItem({
 
   return (
     <>
-      <div className="flex items-center gap-4 rounded-md hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-5 rounded-md hover:bg-muted/50 transition-colors">
         <button
-          className="flex items-center gap-4 flex-1 min-w-0 text-left"
+          className="flex items-center gap-5 flex-1 min-w-0 text-left"
           type="button"
           onClick={() => onToggle(item.id)}
         >
           <Checkbox
             checked={item.done ?? false}
-            className="h-4 w-4 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success pointer-events-none"
+            className="h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success pointer-events-none"
           />
 
           <span
             className={cn(
-              "flex-1 py-1 text-sm transition-all",
+              "flex-1 py-1.5 text-base transition-all",
               item.done && "line-through text-muted-foreground",
             )}
           >
@@ -55,20 +55,20 @@ export function TodoItem({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="h-6 w-6" size="icon" variant="icon-button">
-              <MoreVertical className="h-4 w-4" />
+            <Button className="h-9 w-9" size="icon" variant="icon-button">
+              <MoreVertical className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className="h-5 w-5 mr-2.5" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={() => onDelete(item.id)}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-5 w-5 mr-2.5" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -21,7 +21,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         // Container and grid layout
         "@container/card-header grid auto-rows-min grid-rows-[auto_auto]",
-        "items-center px-3",
+        "items-center px-4",
         "has-data-[slot=card-action]:grid-cols-[1fr_auto]",
         className,
       )}
@@ -67,7 +67,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("px-3 pt-2", className)}
+      className={cn("px-4 pt-3", className)}
       data-slot="card-content"
       {...props}
     />

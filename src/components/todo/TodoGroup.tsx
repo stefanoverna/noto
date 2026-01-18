@@ -1,0 +1,238 @@
+import type {
+  TodoGroup as TodoGroupType,
+  TodoItem as TodoItemType,
+} from "../../types/todo";
+
+import { useState } from "react";
+import {
+  ChevronRight,
+  ChevronDown,
+  Trash2,
+  Plus,
+  MoreVertical,
+  Pencil,
+} from "lucide-react";
+
+import { TodoItem } from "./TodoItem";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
+interface TodoGroupProps {
+  group: TodoGroupType;
+  items: TodoItemType[];
+  onAddItem: (groupId: string, text: string) => void;
+  onUpdateGroup: (groupId: string, updates: Partial<TodoGroupType>) => void;
+  onDeleteGroup: (groupId: string) => void;
+  onToggleItem: (itemId: string) => void;
+  onUpdateItem: (itemId: string, text: string) => void;
+  onDeleteItem: (itemId: string) => void;
+}
+
+export function TodoGroup({
+  group,
+  items,
+  onAddItem,
+  onUpdateGroup,
+  onDeleteGroup,
+  onToggleItem,
+  onUpdateItem,
+  onDeleteItem,
+}: TodoGroupProps) {
+  const [newItemText, setNewItemText] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editValue, setEditValue] = useState(group.name);
+
+  const completedCount = items.filter((i) => i.done).length;
+  const totalCount = items.length;
+
+  const handleToggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleAddItem = () => {
+    if (newItemText.trim()) {
+      onAddItem(group.id, newItemText.trim());
+      setNewItemText("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddItem();
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editValue.trim()) {
+      onUpdateGroup(group.id, { name: editValue.trim() });
+      setIsEditDialogOpen(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditValue(group.name);
+    setIsEditDialogOpen(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === "Escape") {
+      handleCancelEdit();
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-1.5">
+            <button
+              className="flex items-center gap-1.5 flex-1 min-w-0 text-left"
+              type="button"
+              onClick={handleToggleExpand}
+            >
+              <div className="h-6 w-4 shrink-0 flex items-center justify-center">
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </div>
+
+              <span className="text-sm font-semibold flex-1">{group.name}</span>
+            </button>
+
+            {totalCount > 0 && (
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {completedCount}/{totalCount}
+              </span>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="h-6 w-6" size="icon" variant="icon-button">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditValue(group.name);
+                    setIsEditDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDeleteGroup(group.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+
+        {isExpanded && (
+          <CardContent>
+            {items.map((item) => (
+              <TodoItem
+                key={item.id}
+                item={item}
+                onDelete={onDeleteItem}
+                onToggle={onToggleItem}
+                onUpdate={onUpdateItem}
+              />
+            ))}
+
+            <div
+              className={cn(
+                "flex items-center gap-2 mt-0 py-2 rounded-md transition-colors",
+                isFocused ? "bg-muted/50" : "hover:bg-muted/30",
+              )}
+            >
+              <div className="h-4 w-4 rounded-full border-2 border-dashed border-muted-foreground/30 shrink-0" />
+              <input
+                className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
+                placeholder="Add new item..."
+                value={newItemText}
+                onBlur={() => setIsFocused(false)}
+                onChange={(e) => setNewItemText(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onKeyDown={handleKeyDown}
+              />
+              {newItemText && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className="h-6 w-6 text-primary hover:bg-primary/10"
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleAddItem}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add item</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit group</DialogTitle>
+            <DialogDescription>
+              Make changes to your todo group name.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={handleEditKeyDown}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

@@ -1,111 +1,136 @@
-import { useState, useRef, useEffect } from 'react';
-import { Checkbox, Input, Button } from '@heroui/react';
-import { motion } from 'framer-motion';
-import type { TodoItem } from '../../types/todo';
-import { debounce } from '../../lib/utils';
+import type { TodoItem as TodoItemType } from "../../types/todo";
+
+import { useState } from "react";
+import { Trash2, MoreVertical, Pencil } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface TodoItemProps {
-  item: TodoItem;
+  item: TodoItemType;
   onToggle: (itemId: string) => void;
   onUpdate: (itemId: string, text: string) => void;
   onDelete: (itemId: string) => void;
 }
 
-export function TodoItemComponent({ item, onToggle, onUpdate, onDelete }: TodoItemProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [text, setText] = useState(item.text);
-  const inputRef = useRef<HTMLInputElement>(null);
+export function TodoItem({
+  item,
+  onToggle,
+  onUpdate,
+  onDelete,
+}: TodoItemProps) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editValue, setEditValue] = useState(item.text);
 
-  useEffect(() => {
-    setText(item.text);
-  }, [item.text]);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
+  const handleSaveEdit = () => {
+    if (editValue.trim()) {
+      onUpdate(item.id, editValue.trim());
+      setIsEditDialogOpen(false);
     }
-  }, [isEditing]);
-
-  const debouncedUpdate = useRef(
-    debounce((itemId: string, newText: string) => {
-      if (newText.trim()) {
-        onUpdate(itemId, newText.trim());
-      }
-    }, 300)
-  ).current;
-
-  const handleTextChange = (value: string) => {
-    setText(value);
-    debouncedUpdate(item.id, value);
   };
 
-  const handleBlur = () => {
-    setIsEditing(false);
-    if (!text.trim()) {
-      setText(item.text);
-    }
+  const handleCancelEdit = () => {
+    setEditValue(item.text);
+    setIsEditDialogOpen(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleBlur();
-    } else if (e.key === 'Escape') {
-      setText(item.text);
-      setIsEditing(false);
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === "Escape") {
+      handleCancelEdit();
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{
-        opacity: item.done ? 0.6 : 1,
-        y: 0
-      }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.2 }}
-      className="flex items-center gap-3 group py-2 px-3 rounded-lg hover:bg-default-100 transition-colors"
-    >
-      <Checkbox
-        isSelected={item.done}
-        onValueChange={() => onToggle(item.id)}
-        color="success"
-        size="lg"
-      />
-
-      {isEditing ? (
-        <Input
-          ref={inputRef}
-          value={text}
-          onChange={(e) => handleTextChange(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          variant="bordered"
-          size="sm"
-          className="flex-1"
-        />
-      ) : (
-        <div
-          onClick={() => setIsEditing(true)}
-          className="flex-1 cursor-text"
-          style={{
-            textDecoration: item.done ? 'line-through' : 'none',
-          }}
+    <>
+      <div className="flex items-center gap-2 py-1 rounded-md hover:bg-muted/50 transition-colors">
+        <button
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
+          type="button"
+          onClick={() => onToggle(item.id)}
         >
-          {item.text}
-        </div>
-      )}
+          <Checkbox
+            checked={item.done ?? false}
+            className="h-4 w-4 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success pointer-events-none"
+          />
 
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        color="danger"
-        className="opacity-0 group-hover:opacity-100 transition-opacity"
-        onPress={() => onDelete(item.id)}
-      >
-        ×
-      </Button>
-    </motion.div>
+          <span
+            className={cn(
+              "flex-1 text-sm transition-all",
+              item.done && "line-through text-muted-foreground",
+            )}
+          >
+            {item.text}
+          </span>
+        </button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="h-6 w-6" size="icon" variant="icon-button">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => {
+                setEditValue(item.text);
+                setIsEditDialogOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => onDelete(item.id)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit item</DialogTitle>
+            <DialogDescription>
+              Make changes to your todo item.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            autoFocus
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

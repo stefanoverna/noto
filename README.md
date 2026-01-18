@@ -1,50 +1,130 @@
-# Vite & HeroUI Template
+# Noto - Todo List Application
 
-This is a template for creating applications using Vite and HeroUI (v2).
+A modern todo list application built with React, TypeScript, and Supabase.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/vite-template)
+## Database Migration Workflow
 
-## Technologies Used
+This project uses Supabase CLI for database schema management with migrations.
 
-- [Vite](https://vitejs.dev/guide/)
-- [HeroUI](https://heroui.com)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [Framer Motion](https://www.framer.com/motion)
+### Prerequisites
 
-## How to Use
+- Docker installed and running
+- Supabase CLI installed: `npm install -g supabase`
+- Project linked to remote Supabase instance
 
-To clone the project, run the following command:
+### Initial Setup
+
+The project is already initialized and linked. The configuration is in `supabase/config.toml`.
+
+### Making Schema Changes
+
+#### Option 1: Write SQL Directly
+
+1. Create a new migration file:
+   ```bash
+   supabase migration new <migration_name>
+   ```
+
+2. Edit the generated file in `supabase/migrations/` and write your SQL
+
+3. Test locally (see below)
+
+#### Option 2: Use Dashboard + Diff
+
+1. Start local Supabase:
+   ```bash
+   supabase start
+   ```
+
+2. Open Studio Dashboard at http://127.0.0.1:54323
+
+3. Make changes through the UI
+
+4. Generate migration from changes:
+   ```bash
+   supabase db diff -f <migration_name>
+   ```
+
+### Testing Migrations Locally
+
+1. Start local Supabase (if not running):
+   ```bash
+   supabase start
+   ```
+
+2. Apply all migrations to local database:
+   ```bash
+   supabase db reset
+   ```
+   This recreates the local database and applies all migrations in order.
+
+3. Verify the changes in Studio Dashboard (http://127.0.0.1:54323) or with:
+   ```bash
+   psql postgresql://postgres:postgres@127.0.0.1:54322/postgres
+   ```
+
+### Deploying to Production
+
+1. Check which migrations need to be pushed:
+   ```bash
+   supabase migration list
+   ```
+
+2. Push migrations to remote database:
+   ```bash
+   supabase db push
+   ```
+   Confirm when prompted.
+
+### Syncing from Production
+
+If schema changes are made directly in production (not recommended):
 
 ```bash
-git clone https://github.com/heroui-inc/vite-template.git
+supabase db pull
 ```
 
-### Install dependencies
+This creates a new migration file with the changes.
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+### Common Commands
+
+- `supabase start` - Start local Supabase instance
+- `supabase stop` - Stop local instance
+- `supabase status` - Check running services
+- `supabase migration list` - Show migration status (local vs remote)
+- `supabase migration new <name>` - Create new migration file
+- `supabase db diff -f <name>` - Generate migration from local changes
+- `supabase db reset` - Reset local DB and apply all migrations
+- `supabase db push` - Push migrations to remote database
+- `supabase db pull` - Pull schema changes from remote
+
+### Migration Files
+
+Migrations are stored in `supabase/migrations/` with timestamp prefixes:
+- `20260118152549_remote_schema.sql` - Initial schema
+- `20260118152846_drop_collapsed_column.sql` - Example migration
+
+### Best Practices
+
+1. Always test migrations locally before pushing to production
+2. Use descriptive migration names
+3. Keep migrations small and focused
+4. Never edit existing migration files that have been applied
+5. Use `supabase db reset` frequently during development to ensure migrations work correctly
+6. Commit migration files to git
+
+## Development
 
 ```bash
 npm install
-```
-
-### Run the development server
-
-```bash
 npm run dev
 ```
 
-### Setup pnpm (optional)
+## Environment Variables
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+Create a `.env.local` file:
 
-```bash
-public-hoist-pattern[]=*@heroui/*
 ```
-
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
-
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/vite-template/blob/main/LICENSE).
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```

@@ -2,6 +2,7 @@ import type { TodoGroup as TodoGroupType } from "../types/todo";
 
 import { useEffect, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Plus, FileText, Layers } from "lucide-react";
 
 import { useTodoList } from "../hooks/useTodoList";
 import { useTodoSync } from "../hooks/useTodoSync";
@@ -24,7 +25,6 @@ import {
 } from "@/components/ui/empty";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Plus, FileText, Layers } from "lucide-react";
 
 export default function ListPage() {
   const { listId } = useParams<{ listId: string }>();

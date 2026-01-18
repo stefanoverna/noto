@@ -96,7 +96,9 @@ export function TodoGroup({
                 )}
               </div>
 
-              <span className="text-base font-semibold flex-1">{group.name}</span>
+              <span className="text-base font-semibold flex-1 leading-tight">
+                {group.name}
+              </span>
             </button>
 
             {totalCount > 0 && (

@@ -34,7 +34,7 @@ export function TodoItem({
     <>
       <div className="flex items-center gap-5 rounded-md hover:bg-muted/50 transition-colors">
         <button
-          className="flex items-center gap-5 flex-1 min-w-0 text-left"
+          className="flex items-center gap-4 flex-1 min-w-0 text-left"
           type="button"
           onClick={() => onToggle(item.id)}
         >
@@ -45,7 +45,7 @@ export function TodoItem({
 
           <span
             className={cn(
-              "flex-1 py-1.5 text-base transition-all",
+              "flex-1 py-1.5 text-base transition-all leading-tight",
               item.done && "line-through text-muted-foreground",
             )}
           >

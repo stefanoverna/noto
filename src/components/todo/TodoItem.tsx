@@ -1,18 +1,19 @@
-import type { TodoItem as TodoItemType } from '../../types/todo';
+import type { TodoItem as TodoItemType } from "../../types/todo";
 
-import { useState } from 'react';
-import { Trash2, MoreVertical, Pencil } from 'lucide-react';
+import { useState } from "react";
+import { Trash2, MoreVertical, Pencil } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { EditTextDialog } from "./EditTextDialog";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import { EditTextDialog } from './EditTextDialog';
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface TodoItemProps {
   item: TodoItemType;
@@ -44,8 +45,8 @@ export function TodoItem({
 
           <span
             className={cn(
-              'flex-1 py-1 text-sm transition-all',
-              item.done && 'line-through text-muted-foreground',
+              "flex-1 py-1 text-sm transition-all",
+              item.done && "line-through text-muted-foreground",
             )}
           >
             {item.text}
@@ -75,13 +76,13 @@ export function TodoItem({
       </div>
 
       <EditTextDialog
+        initialValue={item.text}
         open={isEditDialogOpen}
+        placeholder="Enter item text..."
+        submitLabel="Save"
+        title="Edit Item"
         onOpenChange={setIsEditDialogOpen}
         onSave={(text) => onUpdate(item.id, text)}
-        title="Edit Item"
-        placeholder="Enter item text..."
-        initialValue={item.text}
-        submitLabel="Save"
       />
     </>
   );

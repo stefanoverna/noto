@@ -30,7 +30,10 @@ interface BatchImportDialogProps {
 }
 
 function parseMarkdownTodos(text: string): ParsedGroup[] {
-  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
   const groups: ParsedGroup[] = [];
   let currentGroup: ParsedGroup | null = null;
 
@@ -91,6 +94,7 @@ export function BatchImportDialog({
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+
     setText(newText);
     setPreview(parseMarkdownTodos(newText));
   };
@@ -114,7 +118,10 @@ export function BatchImportDialog({
     }
   };
 
-  const totalItems = preview.reduce((sum, group) => sum + group.items.length, 0);
+  const totalItems = preview.reduce(
+    (sum, group) => sum + group.items.length,
+    0,
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,8 +178,8 @@ Personal
           {preview.length > 0 && (
             <div className="border rounded-md p-3 bg-muted/50 max-h-[200px] overflow-y-auto">
               <div className="text-sm font-medium mb-2">
-                Preview: {preview.length} group{preview.length !== 1 ? "s" : ""},{" "}
-                {totalItems} item{totalItems !== 1 ? "s" : ""}
+                Preview: {preview.length} group{preview.length !== 1 ? "s" : ""}
+                , {totalItems} item{totalItems !== 1 ? "s" : ""}
               </div>
               <div className="space-y-2">
                 {preview.map((group, i) => (

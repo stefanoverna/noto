@@ -14,11 +14,11 @@ export function CreateGroupDialog({
   return (
     <EditTextDialog
       open={open}
-      onOpenChange={onOpenChange}
-      onSave={onCreateGroup}
-      title="Create New Group"
       placeholder="Enter group name..."
       submitLabel="Create"
+      title="Create New Group"
+      onOpenChange={onOpenChange}
+      onSave={onCreateGroup}
     />
   );
 }

@@ -7,6 +7,7 @@ import { ListChecks, Users, Link, Zap } from "lucide-react";
 import { useTodoList } from "../hooks/useTodoList";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function IndexPage() {
   const navigate = useNavigate();
@@ -20,7 +21,6 @@ export default function IndexPage() {
 
       navigate(`/${listId}`);
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error("Failed to create list:", error);
       setLoading(false);
     }
@@ -48,6 +48,7 @@ export default function IndexPage() {
           size="lg"
           onClick={handleCreateList}
         >
+          {loading && <Spinner className="mr-2" />}
           {loading ? "Creating..." : "Create New List"}
         </Button>
 

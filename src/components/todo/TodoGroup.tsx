@@ -1,9 +1,9 @@
 import type {
   TodoGroup as TodoGroupType,
   TodoItem as TodoItemType,
-} from '../../types/todo';
+} from "../../types/todo";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -11,25 +11,25 @@ import {
   Plus,
   MoreVertical,
   Pencil,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { TodoItem } from './TodoItem';
-import { EditTextDialog } from './EditTextDialog';
+import { TodoItem } from "./TodoItem";
+import { EditTextDialog } from "./EditTextDialog";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface TodoGroupProps {
   group: TodoGroupType;
@@ -52,7 +52,7 @@ export function TodoGroup({
   onUpdateItem,
   onDeleteItem,
 }: TodoGroupProps) {
-  const [newItemText, setNewItemText] = useState('');
+  const [newItemText, setNewItemText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -67,12 +67,12 @@ export function TodoGroup({
   const handleAddItem = () => {
     if (newItemText.trim()) {
       onAddItem(group.id, newItemText.trim());
-      setNewItemText('');
+      setNewItemText("");
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddItem();
     }
@@ -179,13 +179,13 @@ export function TodoGroup({
       </Card>
 
       <EditTextDialog
+        initialValue={group.name}
         open={isEditDialogOpen}
+        placeholder="Enter group name..."
+        submitLabel="Save"
+        title="Edit Group"
         onOpenChange={setIsEditDialogOpen}
         onSave={(name) => onUpdateGroup(group.id, { name })}
-        title="Edit Group"
-        placeholder="Enter group name..."
-        initialValue={group.name}
-        submitLabel="Save"
       />
     </>
   );

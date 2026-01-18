@@ -14,6 +14,17 @@ import { isValidUUID, generateUUID } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Plus, FileText, Layers } from "lucide-react";
 
 export default function ListPage() {
   const { listId } = useParams<{ listId: string }>();
@@ -72,7 +83,6 @@ export default function ListPage() {
       try {
         await addGroup(name);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to add group:", error);
       }
     },
@@ -84,7 +94,6 @@ export default function ListPage() {
       try {
         await updateGroup(groupId, updates);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to update group:", error);
       }
     },
@@ -96,7 +105,6 @@ export default function ListPage() {
       try {
         await deleteGroup(groupId);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to delete group:", error);
       }
     },
@@ -108,7 +116,6 @@ export default function ListPage() {
       try {
         await addItem(groupId, text);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to add item:", error);
       }
     },
@@ -120,7 +127,6 @@ export default function ListPage() {
       try {
         await updateItem(itemId, { text });
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to update item:", error);
       }
     },
@@ -132,7 +138,6 @@ export default function ListPage() {
       try {
         await toggleItem(itemId);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to toggle item:", error);
       }
     },
@@ -144,7 +149,6 @@ export default function ListPage() {
       try {
         await deleteItem(itemId);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to delete item:", error);
       }
     },
@@ -156,7 +160,6 @@ export default function ListPage() {
       try {
         await updateListName(name);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to update list name:", error);
       }
     },
@@ -191,6 +194,7 @@ export default function ListPage() {
           });
 
           let itemPosition = 0;
+
           for (const item of parsedGroup.items) {
             itemsToInsert.push({
               id: generateUUID(),
@@ -209,6 +213,7 @@ export default function ListPage() {
           const { error: groupsError } = await supabase
             .from("todo_groups")
             .insert(groupsToInsert);
+
           if (groupsError) throw groupsError;
         }
 
@@ -216,12 +221,12 @@ export default function ListPage() {
           const { error: itemsError } = await supabase
             .from("todo_items")
             .insert(itemsToInsert);
+
           if (itemsError) throw itemsError;
         }
 
         await loadList();
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error("Failed to batch import:", error);
       }
     },
@@ -231,7 +236,7 @@ export default function ListPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <Spinner className="size-8" />
       </div>
     );
   }
@@ -265,13 +270,33 @@ export default function ListPage() {
 
         <div className="max-w-2xl mx-auto px-4 pt-4 md:pt-8 pb-8">
           {groups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="text-6xl mb-4">📝</div>
-              <h2 className="text-xl font-semibold mb-2">No groups yet</h2>
-              <p className="text-muted-foreground mb-6">
-                Get started by creating your first group
-              </p>
-            </div>
+            <Empty className="py-16">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Layers className="w-16 h-16" />
+                </EmptyMedia>
+                <EmptyTitle>No groups yet</EmptyTitle>
+                <EmptyDescription>
+                  Get started by creating your first group or import tasks from
+                  text
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button onClick={() => setCreateGroupOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create group
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setBatchImportOpen(true)}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Import from text
+                  </Button>
+                </div>
+              </EmptyContent>
+            </Empty>
           ) : (
             <div className="space-y-3">
               {groups.map((group) => (
@@ -283,6 +308,7 @@ export default function ListPage() {
                     .sort((a, b) => {
                       // Completed items first, then uncompleted items
                       if (a.done === b.done) return 0;
+
                       return a.done ? -1 : 1;
                     })}
                   onAddItem={handleAddItem}

@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Share2, Plus, MoreVertical, FileText, Edit } from "lucide-react";
+import {
+  ArrowLeft,
+  Share2,
+  Plus,
+  MoreVertical,
+  FileText,
+  Edit,
+} from "lucide-react";
+
+import { EditTextDialog } from "./EditTextDialog";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { EditTextDialog } from "./EditTextDialog";
 
 interface TopNavbarProps {
   title: string;
@@ -131,7 +139,7 @@ export function TopNavbar({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onBatchImportClick}>
                   <FileText className="w-4 h-4 mr-2" />
-                  Batch import
+                  Import from text
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -140,13 +148,13 @@ export function TopNavbar({
       </div>
 
       <EditTextDialog
+        initialValue={title}
         open={isRenameDialogOpen}
+        placeholder="Enter list name..."
+        submitLabel="Rename"
+        title="Rename List"
         onOpenChange={setIsRenameDialogOpen}
         onSave={onTitleChange}
-        title="Rename List"
-        placeholder="Enter list name..."
-        initialValue={title}
-        submitLabel="Rename"
       />
     </nav>
   );

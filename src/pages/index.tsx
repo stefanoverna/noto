@@ -30,7 +30,9 @@ export default function IndexPage() {
     <main className="min-h-svh flex flex-col items-center justify-center px-4 py-12">
       <div className="flex flex-col items-center text-center max-w-md space-y-8">
         {/* App Icon */}
-        <div className="text-7xl">📝</div>
+        <div className="text-7xl">
+          <ListChecks className="w-20 h-20" />
+        </div>
 
         {/* App Title */}
         <div className="space-y-3">

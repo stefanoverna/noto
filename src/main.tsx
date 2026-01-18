@@ -5,6 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
 import "@/styles/globals.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

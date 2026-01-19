@@ -38,8 +38,8 @@ export default function IndexPage() {
         <div className="space-y-3">
           <h1 className="text-5xl font-bold tracking-tight">Noto</h1>
           <p className="text-xl text-muted-foreground text-pretty">
-            Create todo lists and share them instantly. Work together in
-            real-time.
+            Create shared todo lists and keep everyone in sync. Perfect for
+            couples, roommates, and families.
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export default function IndexPage() {
           <span className="hidden sm:inline text-border">•</span>
           <span className="flex items-center gap-1.5">
             <Users className="w-4 h-4" />
-            Real-time collaboration
+            Stay in sync together
           </span>
         </div>
       </div>
@@ -81,9 +81,9 @@ export default function IndexPage() {
           title="Organize"
         />
         <FeatureCard
-          description="Work together with your team in real-time"
+          description="Stay on the same page with the people you live with"
           icon={<Users className="w-5 h-5" />}
-          title="Collaborate"
+          title="Stay Connected"
         />
         <FeatureCard
           description="Changes sync automatically across devices"

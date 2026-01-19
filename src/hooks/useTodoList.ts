@@ -45,7 +45,8 @@ export function useTodoList(listId: string) {
           .from("todo_groups")
           .select("*")
           .eq("list_id", listId)
-          .order("position");
+          .order("position")
+          .order("created_at");
 
         if (groupsError) throw groupsError;
         setGroups(groupsData);
@@ -54,7 +55,8 @@ export function useTodoList(listId: string) {
           .from("todo_items")
           .select("*")
           .eq("list_id", listId)
-          .order("position");
+          .order("position")
+          .order("created_at");
 
         if (itemsError) throw itemsError;
         setItems(itemsData);

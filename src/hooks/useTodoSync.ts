@@ -26,9 +26,19 @@ export function useTodoSync({
 }: UseTodoSyncOptions) {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [connected, setConnected] = useState(false);
+  const [viewerCount, setViewerCount] = useState(1);
 
   useEffect(() => {
-    const realtimeChannel = supabase.channel(`list:${listId}`);
+    const realtimeChannel = supabase.channel(`list:${listId}`, {
+      config: { presence: { key: crypto.randomUUID() } },
+    });
+
+    // Track how many tabs are currently connected to this list via presence
+    realtimeChannel.on("presence", { event: "sync" }, () => {
+      const state = realtimeChannel.presenceState();
+
+      setViewerCount(Object.keys(state).length);
+    });
 
     // Listen to postgres_changes for todo_lists
     if (onListChange) {
@@ -92,6 +102,10 @@ export function useTodoSync({
 
     realtimeChannel.subscribe((status) => {
       setConnected(status === "SUBSCRIBED");
+      if (status === "SUBSCRIBED") {
+        // Announce this tab's presence so other clients count it
+        realtimeChannel.track({ online_at: new Date().toISOString() });
+      }
     });
 
     setChannel(realtimeChannel);
@@ -101,5 +115,5 @@ export function useTodoSync({
     };
   }, [listId, onListChange, onGroupChange, onItemChange]);
 
-  return { connected, channel };
+  return { connected, channel, viewerCount };
 }

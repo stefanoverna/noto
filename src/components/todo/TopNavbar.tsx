@@ -8,6 +8,7 @@ import {
   FileText,
   FileDown,
   Edit,
+  Eye,
 } from "lucide-react";
 
 import { EditTextDialog } from "./EditTextDialog";
@@ -36,6 +37,7 @@ interface TopNavbarProps {
   status: "connected" | "connecting";
   completedCount: number;
   totalCount: number;
+  viewerCount: number;
 }
 
 export function TopNavbar({
@@ -48,6 +50,7 @@ export function TopNavbar({
   status,
   completedCount,
   totalCount,
+  viewerCount,
 }: TopNavbarProps) {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
@@ -108,6 +111,19 @@ export function TopNavbar({
                 {status === "connected" ? "Connected" : "Connecting..."}
               </TooltipContent>
             </Tooltip>
+
+            {/* Viewer count (only when more than one tab is connected) */}
+            {viewerCount > 1 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 px-1.5 text-sm text-muted-foreground cursor-default">
+                    <Eye className="w-4 h-4" />
+                    <span className="tabular-nums">{viewerCount}</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>{viewerCount} tabs viewing</TooltipContent>
+              </Tooltip>
+            )}
 
             {/* Add Group button */}
             <Tooltip>

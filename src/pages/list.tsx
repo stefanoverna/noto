@@ -91,7 +91,7 @@ export default function ListPage() {
     loadList(true); // silent reload without loading state
   }, [loadList]);
 
-  const { connected } = useTodoSync({
+  const { connected, viewerCount } = useTodoSync({
     listId: listId || "",
     onListChange: handleListChange,
     onGroupChange: handleGroupChange,
@@ -295,6 +295,7 @@ export default function ListPage() {
           status={connected ? "connected" : "connecting"}
           title={list.name}
           totalCount={items.length}
+          viewerCount={viewerCount}
           onAddGroup={() => setCreateGroupOpen(true)}
           onBatchImportClick={() => setBatchImportOpen(true)}
           onExportClick={() => setExportOpen(true)}

@@ -192,6 +192,28 @@ export function useTodoList(listId: string) {
     [loadList],
   );
 
+  // Optimistically apply a new item ordering without persisting (drag preview).
+  const previewItemsOrder = useCallback(
+    (next: Parameters<typeof setItems>[0]) => setItems(next),
+    [],
+  );
+
+  const reorderItems = useCallback(
+    async (nextItems: TodoItem[], changed: TodoItem[]) => {
+      setItems(nextItems);
+
+      if (changed.length === 0) return;
+
+      const { error } = await supabase.from("todo_items").upsert(changed);
+
+      if (error) {
+        loadList();
+        throw error;
+      }
+    },
+    [loadList],
+  );
+
   const toggleItem = useCallback(
     async (itemId: string) => {
       const item = items.find((i) => i.id === itemId);
@@ -230,6 +252,7 @@ export function useTodoList(listId: string) {
     list,
     groups,
     items,
+    previewItemsOrder,
     loading,
     error,
     createList,
@@ -242,5 +265,6 @@ export function useTodoList(listId: string) {
     updateItem,
     toggleItem,
     deleteItem,
+    reorderItems,
   };
 }

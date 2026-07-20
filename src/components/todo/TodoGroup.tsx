@@ -12,6 +12,11 @@ import {
   MoreVertical,
   Pencil,
 } from "lucide-react";
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 import { TodoItem } from "./TodoItem";
 import { EditTextDialog } from "./EditTextDialog";
@@ -34,6 +39,7 @@ import { cn } from "@/lib/utils";
 interface TodoGroupProps {
   group: TodoGroupType;
   items: TodoItemType[];
+  isDragActive?: boolean;
   onAddItem: (groupId: string, text: string) => void;
   onUpdateGroup: (groupId: string, updates: Partial<TodoGroupType>) => void;
   onDeleteGroup: (groupId: string) => void;
@@ -45,6 +51,7 @@ interface TodoGroupProps {
 export function TodoGroup({
   group,
   items,
+  isDragActive = false,
   onAddItem,
   onUpdateGroup,
   onDeleteGroup,
@@ -56,6 +63,8 @@ export function TodoGroup({
   const [isFocused, setIsFocused] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const { setNodeRef, isOver } = useDroppable({ id: group.id });
 
   const completedCount = items.filter((i) => i.done).length;
   const totalCount = items.length;
@@ -132,48 +141,70 @@ export function TodoGroup({
 
         {isExpanded && (
           <CardContent>
-            {items.map((item) => (
-              <TodoItem
-                key={item.id}
-                item={item}
-                onDelete={onDeleteItem}
-                onToggle={onToggleItem}
-                onUpdate={onUpdateItem}
-              />
-            ))}
-
-            <div className="flex items-center gap-5 py-1">
-              <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/30 shrink-0" />
-              <div
-                className={cn(
-                  "flex items-center gap-5 flex-1 rounded-md -ml-1 pl-1 transition-colors",
-                  isFocused ? "bg-muted/50" : "hover:bg-muted/30",
-                )}
+            <div
+              ref={setNodeRef}
+              className={cn(
+                "rounded-md transition-colors",
+                items.length === 0 &&
+                  isDragActive &&
+                  "flex items-center justify-center min-h-12 text-sm text-muted-foreground/50 border border-dashed",
+                isOver && "bg-primary/5 ring-1 ring-primary/20",
+              )}
+            >
+              <SortableContext
+                items={items.map((item) => item.id)}
+                strategy={verticalListSortingStrategy}
               >
-                <input
-                  className="flex-1 py-1.5 text-base bg-transparent outline-none placeholder:text-muted-foreground/50"
-                  placeholder="Add new item..."
-                  value={newItemText}
-                  onBlur={() => setIsFocused(false)}
-                  onChange={(e) => setNewItemText(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onKeyDown={handleKeyDown}
-                />
-                {newItemText && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        className="h-9 w-9 text-primary hover:bg-primary/10"
-                        size="icon"
-                        variant="ghost"
-                        onClick={handleAddItem}
-                      >
-                        <Plus className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Add item</TooltipContent>
-                  </Tooltip>
-                )}
+                {items.map((item) => (
+                  <TodoItem
+                    key={item.id}
+                    item={item}
+                    onDelete={onDeleteItem}
+                    onToggle={onToggleItem}
+                    onUpdate={onUpdateItem}
+                  />
+                ))}
+              </SortableContext>
+              {items.length === 0 && isDragActive && (
+                <span>Drop items here</span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 py-1">
+              <div className="h-9 w-6 shrink-0" />
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/30 shrink-0" />
+                <div
+                  className={cn(
+                    "flex items-center gap-5 flex-1 rounded-md -ml-1 pl-1 transition-colors",
+                    isFocused ? "bg-muted/50" : "hover:bg-muted/30",
+                  )}
+                >
+                  <input
+                    className="flex-1 py-1.5 text-base bg-transparent outline-none placeholder:text-muted-foreground/50"
+                    placeholder="Add new item..."
+                    value={newItemText}
+                    onBlur={() => setIsFocused(false)}
+                    onChange={(e) => setNewItemText(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onKeyDown={handleKeyDown}
+                  />
+                  {newItemText && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          className="h-9 w-9 text-primary hover:bg-primary/10"
+                          size="icon"
+                          variant="ghost"
+                          onClick={handleAddItem}
+                        >
+                          <Plus className="h-5 w-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Add item</TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>

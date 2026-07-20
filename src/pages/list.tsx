@@ -2,12 +2,21 @@ import type { TodoGroup as TodoGroupType } from "../types/todo";
 
 import { useEffect, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, FileText, Layers } from "lucide-react";
+import {
+  Plus,
+  FileText,
+  Layers,
+  GripVertical,
+  MoreVertical,
+} from "lucide-react";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 
 import { useTodoList } from "../hooks/useTodoList";
 import { useTodoSync } from "../hooks/useTodoSync";
+import { useTodoItemDnd } from "../hooks/useTodoItemDnd";
 import { TopNavbar } from "../components/todo/TopNavbar";
 import { TodoGroup } from "../components/todo/TodoGroup";
+import { TodoItemRow } from "../components/todo/TodoItemRow";
 import { ShareDialog } from "../components/todo/ShareDialog";
 import { CreateGroupDialog } from "../components/todo/CreateGroupDialog";
 import { BatchImportDialog } from "../components/todo/BatchImportDialog";
@@ -37,6 +46,7 @@ export default function ListPage() {
     list,
     groups,
     items,
+    previewItemsOrder,
     loading,
     error,
     loadList,
@@ -48,7 +58,15 @@ export default function ListPage() {
     updateItem,
     toggleItem,
     deleteItem,
+    reorderItems,
   } = useTodoList(listId || "");
+
+  const { activeItem, isDragActive, dndContextProps } = useTodoItemDnd({
+    items,
+    groups,
+    previewItemsOrder,
+    reorderItems,
+  });
 
   useEffect(() => {
     if (!listId || !isValidUUID(listId)) {
@@ -298,28 +316,49 @@ export default function ListPage() {
               </EmptyContent>
             </Empty>
           ) : (
-            <div className="space-y-3">
-              {groups.map((group) => (
-                <TodoGroup
-                  key={group.id}
-                  group={group}
-                  items={items
-                    .filter((item) => item.group_id === group.id)
-                    .sort((a, b) => {
-                      // Completed items first, then uncompleted items
-                      if (a.done === b.done) return 0;
+            <DndContext {...dndContextProps}>
+              <div className="space-y-3">
+                {groups.map((group) => (
+                  <TodoGroup
+                    key={group.id}
+                    group={group}
+                    isDragActive={isDragActive}
+                    items={items.filter((item) => item.group_id === group.id)}
+                    onAddItem={handleAddItem}
+                    onDeleteGroup={handleDeleteGroup}
+                    onDeleteItem={handleDeleteItem}
+                    onToggleItem={handleToggleItem}
+                    onUpdateGroup={handleUpdateGroup}
+                    onUpdateItem={handleUpdateItem}
+                  />
+                ))}
+              </div>
 
-                      return a.done ? -1 : 1;
-                    })}
-                  onAddItem={handleAddItem}
-                  onDeleteGroup={handleDeleteGroup}
-                  onDeleteItem={handleDeleteItem}
-                  onToggleItem={handleToggleItem}
-                  onUpdateGroup={handleUpdateGroup}
-                  onUpdateItem={handleUpdateItem}
-                />
-              ))}
-            </div>
+              <DragOverlay>
+                {activeItem ? (
+                  <TodoItemRow
+                    className="bg-card shadow-lg ring-1 ring-border cursor-grabbing"
+                    done={activeItem.done ?? false}
+                    gripSlot={
+                      <div className="h-9 w-6 shrink-0 flex items-center justify-center text-muted-foreground">
+                        <GripVertical className="h-5 w-5" />
+                      </div>
+                    }
+                    text={activeItem.text}
+                    trailingSlot={
+                      <Button
+                        className="h-9 w-9"
+                        size="icon"
+                        tabIndex={-1}
+                        variant="icon-button"
+                      >
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    }
+                  />
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           )}
         </div>
 

@@ -23,10 +23,6 @@ dist-ssr
 *.sw?
 
 
-pnpm-lock.yaml
-yarn.lock
-bun.lockb
-
 shadcn-interface/
 supabase/.temp/
 supabase/.branches/

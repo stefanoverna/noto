@@ -1,9 +1,14 @@
 import type React from "react";
+import type { ParsedGroup } from "@/lib/todoTextFormat";
 
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
+import { ItemDescription } from "./ItemDescription";
+
+import { parseTodoText } from "@/lib/todoTextFormat";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -13,72 +18,31 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-interface ParsedGroup {
-  name: string;
-  items: ParsedItem[];
-}
-
-interface ParsedItem {
-  text: string;
-  done: boolean;
-}
-
 interface BatchImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (groups: ParsedGroup[]) => void;
-}
-
-function parseMarkdownTodos(text: string): ParsedGroup[] {
-  const lines = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const groups: ParsedGroup[] = [];
-  let currentGroup: ParsedGroup | null = null;
-
-  for (const line of lines) {
-    // Check if this is a todo item (starts with - [ ] or - [x])
-    const todoMatch = line.match(/^-\s*\[([ x])\]\s*(.+)$/i);
-
-    if (todoMatch) {
-      // This is a todo item
-      const done = todoMatch[1].toLowerCase() === "x";
-      const text = todoMatch[2].trim();
-
-      if (!currentGroup) {
-        // Create a default group if we don't have one
-        currentGroup = { name: "Items", items: [] };
-        groups.push(currentGroup);
-      }
-
-      currentGroup.items.push({ text, done });
-    } else {
-      // This is a group name
-      currentGroup = { name: line, items: [] };
-      groups.push(currentGroup);
-    }
-  }
-
-  // Filter out empty groups
-  return groups.filter((group) => group.items.length > 0);
+  onImport: (groups: ParsedGroup[], replace: boolean) => void;
+  hasExisting: boolean;
 }
 
 const LLM_PROMPT = `Please format this as a todo list in the following format:
 
-- Group names should be on their own lines (without any prefix)
+- Group titles should be markdown headings, e.g. "# Work Tasks"
 - Todo items should start with "- [ ]" for unchecked items or "- [x]" for checked items
 - IMPORTANT: Every todo item MUST belong to a group. Do not create items without a group.
+- OPTIONAL: An item can have a description on the following line(s), each prefixed with "> ". Descriptions may use inline markdown (**bold**, *italic*, \`code\`, [links](url)). Use consecutive "> " lines for multiple lines, and a bare ">" line to separate paragraphs.
 
 Example format:
 
-Work Tasks
+# Work Tasks
 - [ ] Review pull requests
+> Focus on the **auth** module and check the token refresh path
 - [ ] Update documentation
 - [x] Fix bug in login
 
-Personal
+# Personal
 - [ ] Buy groceries
+> Milk, eggs, bread
 - [ ] Call dentist
 
 Please convert the following into this format:`;
@@ -87,16 +51,18 @@ export function BatchImportDialog({
   open,
   onOpenChange,
   onImport,
+  hasExisting,
 }: BatchImportDialogProps) {
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<ParsedGroup[]>([]);
   const [copied, setCopied] = useState(false);
+  const [replace, setReplace] = useState(false);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
 
     setText(newText);
-    setPreview(parseMarkdownTodos(newText));
+    setPreview(parseTodoText(newText));
   };
 
   const handleCopyPrompt = async () => {
@@ -111,9 +77,10 @@ export function BatchImportDialog({
 
   const handleImport = () => {
     if (preview.length > 0) {
-      onImport(preview);
+      onImport(preview, replace && hasExisting);
       setText("");
       setPreview([]);
+      setReplace(false);
       onOpenChange(false);
     }
   };
@@ -129,10 +96,13 @@ export function BatchImportDialog({
         <DialogHeader>
           <DialogTitle>Batch Import</DialogTitle>
           <DialogDescription>
-            Paste markdown-like text to create multiple groups and items. Use{" "}
-            <code className="bg-muted px-1 rounded">- [ ]</code> for unchecked
-            items and <code className="bg-muted px-1 rounded">- [x]</code> for
-            checked items. Group names should be on their own lines.
+            Paste markdown-like text to create multiple groups and items. Start
+            group titles with <code className="bg-muted px-1 rounded">#</code>,
+            and use <code className="bg-muted px-1 rounded">- [ ]</code> for
+            unchecked items and{" "}
+            <code className="bg-muted px-1 rounded">- [x]</code> for checked
+            items. Add an optional description on the next line(s) with{" "}
+            <code className="bg-muted px-1 rounded">&gt;</code>.
           </DialogDescription>
         </DialogHeader>
 
@@ -162,14 +132,15 @@ export function BatchImportDialog({
               className="h-full min-h-[200px] font-mono text-sm resize-none"
               placeholder={`Example:
 
-Work Tasks
+# Work Tasks
 - [ ] Review pull requests
+> Focus on the auth module
 - [ ] Update documentation
 - [x] Fix bug in login
 
-Personal
+# Personal
 - [ ] Buy groceries
-- [ ] Call dentist`}
+> Milk, eggs, bread`}
               value={text}
               onChange={handleTextChange}
             />
@@ -188,7 +159,15 @@ Personal
                     <ul className="ml-4 mt-1 space-y-0.5">
                       {group.items.map((item, j) => (
                         <li key={j} className="text-muted-foreground">
-                          {item.done ? "✓" : "○"} {item.text}
+                          <span>
+                            {item.done ? "✓" : "○"} {item.text}
+                          </span>
+                          {item.description && (
+                            <ItemDescription
+                              className="ml-4"
+                              text={item.description}
+                            />
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -199,13 +178,42 @@ Personal
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button disabled={preview.length === 0} onClick={handleImport}>
-            Import {preview.length > 0 && `(${totalItems} items)`}
-          </Button>
+        {replace && hasExisting && (
+          <p className="text-sm text-destructive">
+            This deletes all current groups and items before importing.
+          </p>
+        )}
+
+        <div className="flex items-center justify-between gap-2">
+          {hasExisting ? (
+            <label
+              className="flex items-center gap-2 text-sm cursor-pointer select-none"
+              htmlFor="batch-import-replace"
+            >
+              <Checkbox
+                checked={replace}
+                id="batch-import-replace"
+                onCheckedChange={(v) => setReplace(v === true)}
+              />
+              Replace current list
+            </label>
+          ) : (
+            <span />
+          )}
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={preview.length === 0}
+              variant={replace && hasExisting ? "destructive" : "default"}
+              onClick={handleImport}
+            >
+              {replace && hasExisting ? "Replace" : "Import"}
+              {preview.length > 0 && ` (${totalItems} items)`}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

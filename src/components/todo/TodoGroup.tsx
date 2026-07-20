@@ -44,7 +44,10 @@ interface TodoGroupProps {
   onUpdateGroup: (groupId: string, updates: Partial<TodoGroupType>) => void;
   onDeleteGroup: (groupId: string) => void;
   onToggleItem: (itemId: string) => void;
-  onUpdateItem: (itemId: string, text: string) => void;
+  onUpdateItem: (
+    itemId: string,
+    updates: { text: string; description: string },
+  ) => void;
   onDeleteItem: (itemId: string) => void;
 }
 

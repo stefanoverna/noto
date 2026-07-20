@@ -5,7 +5,7 @@ import { Trash2, MoreVertical, Pencil, GripVertical } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-import { EditTextDialog } from "./EditTextDialog";
+import { EditItemDialog } from "./EditItemDialog";
 import { TodoItemRow } from "./TodoItemRow";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,10 @@ import { cn } from "@/lib/utils";
 interface TodoItemProps {
   item: TodoItemType;
   onToggle: (itemId: string) => void;
-  onUpdate: (itemId: string, text: string) => void;
+  onUpdate: (
+    itemId: string,
+    updates: { text: string; description: string },
+  ) => void;
   onDelete: (itemId: string) => void;
 }
 
@@ -49,6 +52,7 @@ export function TodoItem({
           "group/item hover:bg-muted/50",
           isDragging && "opacity-50",
         )}
+        description={item.description}
         done={item.done ?? false}
         gripSlot={
           <button
@@ -91,14 +95,12 @@ export function TodoItem({
         onToggle={() => onToggle(item.id)}
       />
 
-      <EditTextDialog
-        initialValue={item.text}
+      <EditItemDialog
+        initialDescription={item.description}
+        initialText={item.text}
         open={isEditDialogOpen}
-        placeholder="Enter item text..."
-        submitLabel="Save"
-        title="Edit Item"
         onOpenChange={setIsEditDialogOpen}
-        onSave={(text) => onUpdate(item.id, text)}
+        onSave={(updates) => onUpdate(item.id, updates)}
       />
     </>
   );

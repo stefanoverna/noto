@@ -6,6 +6,7 @@ import {
   Plus,
   MoreVertical,
   FileText,
+  FileDown,
   Edit,
 } from "lucide-react";
 
@@ -30,6 +31,7 @@ interface TopNavbarProps {
   onTitleChange: (title: string) => void;
   onShareClick: () => void;
   onBatchImportClick: () => void;
+  onExportClick: () => void;
   onAddGroup: () => void;
   status: "connected" | "connecting";
   completedCount: number;
@@ -41,6 +43,7 @@ export function TopNavbar({
   onTitleChange,
   onShareClick,
   onBatchImportClick,
+  onExportClick,
   onAddGroup,
   status,
   completedCount,
@@ -140,6 +143,10 @@ export function TopNavbar({
                 <DropdownMenuItem onClick={onBatchImportClick}>
                   <FileText className="w-4 h-4 mr-2" />
                   Import from text
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onExportClick}>
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Export as text
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

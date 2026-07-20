@@ -155,6 +155,7 @@ export function useTodoList(listId: string) {
         group_id: groupId,
         list_id: listId,
         text,
+        description: "",
         done: false,
         position,
         created_at: new Date().toISOString(),

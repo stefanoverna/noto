@@ -20,6 +20,7 @@ import { TodoItemRow } from "../components/todo/TodoItemRow";
 import { ShareDialog } from "../components/todo/ShareDialog";
 import { CreateGroupDialog } from "../components/todo/CreateGroupDialog";
 import { BatchImportDialog } from "../components/todo/BatchImportDialog";
+import { ExportDialog } from "../components/todo/ExportDialog";
 import { isValidUUID, generateUUID } from "../lib/utils";
 import { supabase } from "../lib/supabase";
 
@@ -41,6 +42,7 @@ export default function ListPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [batchImportOpen, setBatchImportOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const {
     list,
@@ -141,9 +143,9 @@ export default function ListPage() {
   );
 
   const handleUpdateItem = useCallback(
-    async (itemId: string, text: string) => {
+    async (itemId: string, updates: { text: string; description: string }) => {
       try {
-        await updateItem(itemId, { text });
+        await updateItem(itemId, updates);
       } catch (error) {
         console.error("Failed to update item:", error);
       }
@@ -188,17 +190,29 @@ export default function ListPage() {
     async (
       parsedGroups: Array<{
         name: string;
-        items: Array<{ text: string; done: boolean }>;
+        items: Array<{ text: string; done: boolean; description: string }>;
       }>,
+      replace: boolean,
     ) => {
       if (!listId) return;
 
       try {
+        if (replace) {
+          // Deleting the list's groups cascades to their items (FK ON DELETE
+          // CASCADE), clearing the list before the new content goes in.
+          const { error: deleteError } = await supabase
+            .from("todo_groups")
+            .delete()
+            .eq("list_id", listId);
+
+          if (deleteError) throw deleteError;
+        }
+
         const now = new Date().toISOString();
         const groupsToInsert = [];
         const itemsToInsert = [];
 
-        let groupPosition = groups.length;
+        let groupPosition = replace ? 0 : groups.length;
 
         for (const parsedGroup of parsedGroups) {
           const groupId = generateUUID();
@@ -219,6 +233,7 @@ export default function ListPage() {
               group_id: groupId,
               list_id: listId,
               text: item.text,
+              description: item.description,
               done: item.done,
               position: itemPosition++,
               created_at: now,
@@ -282,6 +297,7 @@ export default function ListPage() {
           totalCount={items.length}
           onAddGroup={() => setCreateGroupOpen(true)}
           onBatchImportClick={() => setBatchImportOpen(true)}
+          onExportClick={() => setExportOpen(true)}
           onShareClick={() => setShareOpen(true)}
           onTitleChange={handleUpdateListName}
         />
@@ -373,9 +389,16 @@ export default function ListPage() {
           onOpenChange={setCreateGroupOpen}
         />
         <BatchImportDialog
+          hasExisting={groups.length > 0}
           open={batchImportOpen}
           onImport={handleBatchImport}
           onOpenChange={setBatchImportOpen}
+        />
+        <ExportDialog
+          groups={groups}
+          items={items}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
         />
       </div>
     </TooltipProvider>
